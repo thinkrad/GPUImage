@@ -25,6 +25,8 @@
     BOOL isFullYUVRange;
 
     int imageBufferWidth, imageBufferHeight;
+    
+    BOOL firstTime;
 }
 
 - (void)processAsset;
@@ -153,6 +155,8 @@
 
 - (void)startProcessing
 {
+    firstTime = TRUE;
+    
     if( self.playerItem ) {
         [self processPlayerItem];
         return;
@@ -334,6 +338,12 @@
 	CFTimeInterval nextVSync = ([sender timestamp] + [sender duration]);
 
 	CMTime outputItemTime = [playerItemOutput itemTimeForHostTime:nextVSync];
+    
+    if (firstTime && outputItemTime.value != 0) {
+        // video is broken, restart it
+        [self startProcessing];
+    }
+    firstTime = false;
 
 	if ([playerItemOutput hasNewPixelBufferForItemTime:outputItemTime]) {
         __unsafe_unretained GPUImageMovie *weakSelf = self;
