@@ -4,6 +4,8 @@
 #import "GLProgram.h"
 #import "GPUImageFilter.h"
 
+#define BITS_IN_MB 8388608
+
 NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 (
  varying highp vec2 textureCoordinate;
@@ -194,6 +196,23 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         [settings setObject:AVVideoCodecH264 forKey:AVVideoCodecKey];
         [settings setObject:[NSNumber numberWithInt:videoSize.width] forKey:AVVideoWidthKey];
         [settings setObject:[NSNumber numberWithInt:videoSize.height] forKey:AVVideoHeightKey];
+        
+        //COMPRESSSION SETTINGS ------------------------
+        int mbBitRate = 8 * BITS_IN_MB;
+        NSNumber *bitRate = [NSNumber numberWithInt: (mbBitRate)];
+        
+        NSMutableDictionary * compressionProperties = [[NSMutableDictionary alloc] init];
+        [compressionProperties setObject:bitRate forKey:AVVideoAverageBitRateKey];
+        [compressionProperties setObject:[NSNumber numberWithInt: 1] forKey:AVVideoMaxKeyFrameIntervalKey];
+        
+        [compressionProperties setObject:[NSNumber numberWithBool:true] forKey:AVVideoAllowFrameReorderingKey];
+        [compressionProperties setObject:AVVideoProfileLevelH264HighAutoLevel forKey:AVVideoProfileLevelKey];
+        [compressionProperties setObject:AVVideoH264EntropyModeCABAC forKey:AVVideoH264EntropyModeKey];
+        
+        
+        [settings setObject:compressionProperties forKey:AVVideoCompressionPropertiesKey];
+        //------------------------------------------------
+        
         outputSettings = settings;
     }
     // custom output settings specified
