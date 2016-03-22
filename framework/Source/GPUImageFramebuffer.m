@@ -153,7 +153,8 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size);
             if (err)
             {
                 NSLog(@"FBO size: %f, %f", _size.width, _size.height);
-                NSAssert(NO, @"Error at CVPixelBufferCreate %d", err);
+                //NSAssert(NO, @"Error at CVPixelBufferCreate %d", err);
+                return;
             }
             
             err = CVOpenGLESTextureCacheCreateTextureFromImage (kCFAllocatorDefault, coreVideoTextureCache, renderTarget,
