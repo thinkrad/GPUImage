@@ -1,5 +1,11 @@
 #import "GPUImagePicture.h"
 
+@interface GPUImagePicture() {}
+
+@property (nonatomic) CGSize uiImageSize;
+
+@end
+
 @implementation GPUImagePicture
 
 #pragma mark -
@@ -23,7 +29,7 @@
     
     if (!(self = [self initWithImage:inputImage]))
     {
-		return nil;
+        return nil;
     }
     
     return self;
@@ -31,9 +37,10 @@
 
 - (id)initWithImage:(UIImage *)newImageSource;
 {
+    self.uiImageSize = newImageSource.size;
     if (!(self = [self initWithImage:newImageSource smoothlyScaleOutput:NO]))
     {
-		return nil;
+        return nil;
     }
     
     return self;
@@ -43,7 +50,7 @@
 {
     if (!(self = [self initWithCGImage:newImageSource smoothlyScaleOutput:NO]))
     {
-		return nil;
+        return nil;
     }
     return self;
 }
@@ -57,19 +64,19 @@
 {
     if (!(self = [super init]))
     {
-		return nil;
+        return nil;
     }
     
     hasProcessedImage = NO;
     self.shouldSmoothlyScaleOutput = smoothlyScaleOutput;
     imageUpdateSemaphore = dispatch_semaphore_create(0);
     dispatch_semaphore_signal(imageUpdateSemaphore);
-
-
+    
+    
     // TODO: Dispatch this whole thing asynchronously to move image loading off main thread
-    CGFloat widthOfImage = CGImageGetWidth(newImageSource);
-    CGFloat heightOfImage = CGImageGetHeight(newImageSource);
-
+    CGFloat widthOfImage = self.uiImageSize.width > 0 ? self.uiImageSize.width : CGImageGetWidth(newImageSource);
+    CGFloat heightOfImage = self.uiImageSize.height > 0 ? self.uiImageSize.height: CGImageGetHeight(newImageSource);
+    
     // If passed an empty image reference, CGContextDrawImage will fail in future versions of the SDK.
     NSAssert( widthOfImage > 0 && heightOfImage > 0, @"Passed image must not be empty - it should be at least 1px tall and wide");
     
@@ -106,7 +113,7 @@
         /* Check that the memory layout is compatible with GL, as we cannot use glPixelStore to
          * tell GL about the memory layout with GLES.
          */
-        if (CGImageGetBytesPerRow(newImageSource) != CGImageGetWidth(newImageSource) * 4 ||
+        if (CGImageGetBytesPerRow(newImageSource) != widthOfImage * 4 ||
             CGImageGetBitsPerPixel(newImageSource) != 32 ||
             CGImageGetBitsPerComponent(newImageSource) != 8)
         {
@@ -184,7 +191,7 @@
         
         outputFramebuffer = [[GPUImageContext sharedFramebufferCache] fetchFramebufferForSize:pixelSizeToUseForTexture onlyTexture:YES];
         [outputFramebuffer disableReferenceCounting];
-
+        
         glBindTexture(GL_TEXTURE_2D, [outputFramebuffer texture]);
         if (self.shouldSmoothlyScaleOutput)
         {
@@ -220,7 +227,7 @@
 {
     [outputFramebuffer enableReferenceCounting];
     [outputFramebuffer unlock];
-
+    
 #if !OS_OBJECT_USE_OBJC
     if (imageUpdateSemaphore != NULL)
     {
@@ -254,7 +261,7 @@
         return NO;
     }
     
-    runAsynchronouslyOnVideoProcessingQueue(^{        
+    runAsynchronouslyOnVideoProcessingQueue(^{
         for (id<GPUImageInput> currentTarget in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
