@@ -1,14 +1,20 @@
 #import "GPUImagePicture.h"
 
+@interface GPUImagePicture()
+
+@property (nonatomic) BOOL preview;
+
+@end
+
 @implementation GPUImagePicture
 
 #pragma mark -
 #pragma mark Initialization and teardown
 
-- (id)initWithURL:(NSURL *)url;
+- (id)initWithURL:(NSURL *)url forPreview:(BOOL)preview;
 {
     NSData *imageData = [[NSData alloc] initWithContentsOfURL:url];
-    
+    _preview = preview;
     if (!(self = [self initWithData:imageData]))
     {
         return nil;
@@ -73,10 +79,14 @@
     // If passed an empty image reference, CGContextDrawImage will fail in future versions of the SDK.
     NSAssert( widthOfImage > 0 && heightOfImage > 0, @"Passed image must not be empty - it should be at least 1px tall and wide");
     
-    pixelSizeOfImage = CGSizeMake(widthOfImage, heightOfImage);
+    if (!self.preview) {
+        pixelSizeOfImage = CGSizeMake(widthOfImage, heightOfImage);
+    } else {
+        pixelSizeOfImage = CGSizeMake(widthOfImage/2, heightOfImage/2);
+    }
     CGSize pixelSizeToUseForTexture = pixelSizeOfImage;
-    
-    BOOL shouldRedrawUsingCoreGraphics = NO;
+    NSLog(@"SIZE %f %f", pixelSizeToUseForTexture.width, pixelSizeToUseForTexture.height);
+    BOOL shouldRedrawUsingCoreGraphics = self.preview;
     
     // For now, deal with images larger than the maximum texture size by resizing to be within that limit
     CGSize scaledImageSizeToFitOnGPU = [GPUImageContext sizeThatFitsWithinATextureForSize:pixelSizeOfImage];
