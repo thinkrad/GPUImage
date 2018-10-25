@@ -198,7 +198,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         [settings setObject:[NSNumber numberWithInt:videoSize.height] forKey:AVVideoHeightKey];
         
         //COMPRESSSION SETTINGS ------------------------
-        int mbBitRate = 2.5 * BITS_IN_MB;
+        int mbBitRate = 5.0 * BITS_IN_MB;
         NSNumber *bitRate = [NSNumber numberWithInt: (mbBitRate)];
         
         NSMutableDictionary * compressionProperties = [[NSMutableDictionary alloc] init];
