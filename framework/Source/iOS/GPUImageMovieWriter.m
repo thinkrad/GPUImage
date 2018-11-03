@@ -637,8 +637,16 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 
 - (void)setFilterFBO;
 {
-    if (!movieFramebuffer)
+    // potential fix for choppy video recording with 1080p-6s combo
+    // the basic idea is that gpuimage was using the api incorrectly,
+    // you are not supposed to re-use CVPixelBuffers that are vended
+    // from the AVAssetWriterInputPixelBufferAdaptor's magical pool
+    // ...so we destroy and recreate every frame...
+    //
+    // potential fix via https://github.com/BradLarson/GPUImage2/pull/245
+    if (true)
     {
+        [self destroyDataFBO];
         [self createDataFBO];
     }
     
@@ -677,7 +685,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     glVertexAttribPointer(colorSwizzlingTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glFinish();
+    glFlush();
 }
 
 #pragma mark -
@@ -713,7 +721,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     }
     
     GPUImageFramebuffer *inputFramebufferForBlock = firstInputFramebuffer;
-    glFinish();
+    glFlush();
     
     runAsynchronouslyOnContextQueue(_movieWriterContext, ^{
         if (!assetWriterVideoInput.readyForMoreMediaData && _encodingLiveVideo)
@@ -732,7 +740,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
         if ([GPUImageContext supportsFastTextureUpload])
         {
             pixel_buffer = renderTarget;
-            CVPixelBufferLockBaseAddress(pixel_buffer, 0);
+//            CVPixelBufferLockBaseAddress(pixel_buffer, 0);
         }
         else
         {
@@ -744,7 +752,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
             }
             else
             {
-                CVPixelBufferLockBaseAddress(pixel_buffer, 0);
+//                CVPixelBufferLockBaseAddress(pixel_buffer, 0);
                 
                 GLubyte *pixelBufferData = (GLubyte *)CVPixelBufferGetBaseAddress(pixel_buffer);
                 glReadPixels(0, 0, videoSize.width, videoSize.height, GL_RGBA, GL_UNSIGNED_BYTE, pixelBufferData);
@@ -771,7 +779,7 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
                 NSLog(@"Couldn't write a frame");
                 //NSLog(@"Wrote a video frame: %@", CFBridgingRelease(CMTimeCopyDescription(kCFAllocatorDefault, frameTime)));
             }
-            CVPixelBufferUnlockBaseAddress(pixel_buffer, 0);
+//            CVPixelBufferUnlockBaseAddress(pixel_buffer, 0);
             
             previousFrameTime = frameTime;
             
