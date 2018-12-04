@@ -11,7 +11,7 @@
 }
 
 // Initialization and teardown
-- (id)initWithURL:(NSURL *)url forPreview:(BOOL)preview;
+- (id)initWithURL:(NSURL *)url;
 - (id)initWithImage:(UIImage *)newImageSource;
 - (id)initWithCGImage:(CGImageRef)newImageSource;
 - (id)initWithImage:(UIImage *)newImageSource smoothlyScaleOutput:(BOOL)smoothlyScaleOutput;
